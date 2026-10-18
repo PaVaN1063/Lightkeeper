@@ -15,7 +15,31 @@
   <img alt="Platforms" src="https://img.shields.io/badge/Android%20·%20iOS%20·%20Web-FFB547?labelColor=0B1220">
 </p>
 
+## Preview
+
+### The app
+
 ![Three phones: Explore, the watch list and a two-site price watch](docs/images/hero.jpg)
+
+### Cross-platform: Android, iOS and the web
+
+One Expo codebase runs as a phone app and as a responsive web app, with a sidebar and split view on laptops and bottom tabs on phones.
+
+![The web dashboard in a browser next to the phone app](docs/images/cross-platform.jpg)
+
+![Explore ready-made watches on the web and on a phone](docs/images/web-explore.jpg)
+
+![The landing page in a browser](docs/images/web.jpg)
+
+### Light and dark themes
+
+Settings → Appearance offers **System**, **Light** and **Dark**. The choice is saved on the device, and the web app has the same switch in its sidebar.
+
+![The same screens in light and dark](docs/images/themes.jpg)
+
+### From link to alert
+
+![Four steps: add a watch, confirm the goal, get an alert, open the details](docs/images/flow.jpg)
 
 ## Why Lightkeeper
 
@@ -31,34 +55,18 @@ Lightkeeper does the refreshing for you:
 
 ## How it works
 
-![Four steps: add a watch, confirm the goal, get an alert, open the details](docs/images/flow.jpg)
-
 1. **Paste a link and say what you're waiting for.** Add a second site if you like.
 2. **Check what we'll watch for.** Lightkeeper rewrites your goal into a precise check: words to look for, a price target, or any change.
 3. **Forget about it.** The server checks the page on schedule. Same page as last time? Nothing happens.
 4. **Get one clear alert** with a one-line summary and the direct link, then rate it *Useful* or *Not useful*.
 
-## One codebase: Android, iOS and the web
-
-![The web dashboard in a browser next to the phone app](docs/images/cross-platform.jpg)
-
-The app is built once with **Expo** and runs as:
+## Platforms
 
 | Platform | How it's delivered | Alerts |
 | --- | --- | --- |
 | **Android** | Installable app (APK now, Play Store later) | Push notifications |
 | **iOS** | Same code, via TestFlight / App Store later | Push notifications |
-| **Web** | Responsive web app: sidebar and split view on laptops, bottom tabs on phones | Web Push; on iPhone after *Add to Home Screen* |
-
-![The landing page in a browser](docs/images/web.jpg)
-
-![Explore ready-made watches on the web and on a phone](docs/images/web-explore.jpg)
-
-## Light, dark, or follow the system
-
-![The same screens in light and dark](docs/images/themes.jpg)
-
-Settings → Appearance offers **System**, **Light** and **Dark**. The choice is saved on the device, and the web app has the same switch in its sidebar.
+| **Web** | Responsive web app | Web Push; on iPhone after *Add to Home Screen* |
 
 ## Tech stack
 
