@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { Button } from '../../src/components/Button';
 import { Card, IconButton, ProBadge, Segmented, SiteAvatar } from '../../src/components/primitives';
@@ -25,6 +25,8 @@ export default function NewWatch() {
   const { colors } = useTheme();
   const { isWide } = useLayout();
   const { draft, setDraft, limits, activeCount, createWatchFromDraft } = useApp();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const sites = draft.urls.map(siteFromUrl).filter((s): s is string => !!s);
   const canContinue = sites.length > 0 && draft.goal.trim().length > 3;
@@ -35,9 +37,19 @@ export default function NewWatch() {
   const addPage = () => (atPageLimit ? router.push('/pro') : setDraft({ urls: [...draft.urls, ''] }));
 
   const close = () => (router.canGoBack() ? router.back() : router.replace('/(tabs)'));
-  const start = () => {
-    createWatchFromDraft();
-    router.replace('/(tabs)');
+  const start = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await createWatchFromDraft();
+      router.replace('/(tabs)');
+    } catch (e) {
+      const err = e as { code?: string; message?: string };
+      if (err.code === 'LIMIT_WATCHES' || err.code === 'LIMIT_PAGES') router.push('/pro');
+      setError(err.message ?? 'Could not create the watch.');
+    } finally {
+      setBusy(false);
+    }
   };
 
   const form = (
@@ -132,7 +144,8 @@ export default function NewWatch() {
         {canContinue ? previewSentence(sites, draft.goal, draft.interval) : 'Add a link and tell me what you are waiting for. I will rewrite it here.'}
       </Txt>
       <Txt variant="small" color="textSoft">Counts as 1 watch · {activeCount} of {limits.watches} used</Txt>
-      <Button label="Start watching" disabled={!canContinue} onPress={start} />
+      {error ? <Txt variant="small" style={{ color: colors.danger }}>{error}</Txt> : null}
+      <Button label={busy ? 'Checking the page…' : 'Start watching'} disabled={!canContinue || busy} onPress={start} />
       <Txt variant="caption" color="textSoft">Always confirm on the official website before acting on an alert.</Txt>
     </Card>
   );

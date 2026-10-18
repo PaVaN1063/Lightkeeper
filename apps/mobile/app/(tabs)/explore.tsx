@@ -18,6 +18,19 @@ export default function Explore() {
   const { sources, watchedSources, toggleSource } = useApp();
   const [cat, setCat] = useState<SourceCategory>('Exams');
   const [query, setQuery] = useState('');
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const toggle = async (id: string) => {
+    setBusyId(id);
+    setError(null);
+    try {
+      await toggleSource(id);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusyId(null);
+    }
+  };
   // Cards are at least 280px wide: 1 column on phones, 2–4 on tablets and laptops.
   const grid = useGrid(280, 12);
 
@@ -61,15 +74,21 @@ export default function Explore() {
           <Txt variant="small" color="muted">{list.length} {list.length === 1 ? 'source' : 'sources'}</Txt>
         </View>
 
+        {error ? (
+          <View style={[styles.empty, { backgroundColor: colors.dangerBg }]}>
+            <Txt variant="small" style={{ color: colors.danger }}>{error}</Txt>
+          </View>
+        ) : null}
+
         <View onLayout={grid.onLayout} style={grid.containerStyle}>
           {list.map((s) => (
             <View key={s.id} style={grid.itemStyle}>
-              <SourceCard source={s} watching={!!watchedSources[s.id]} onToggle={() => toggleSource(s.id)} stacked={grid.columns > 1} />
+              <SourceCard source={s} watching={!!watchedSources[s.id]} busy={busyId === s.id} onToggle={() => toggle(s.id)} stacked={grid.columns > 1} />
             </View>
           ))}
         </View>
 
-        {list.length === 0 ? (
+        {list.length === 0 && sources.length > 0 ? (
           <View style={[styles.empty, { backgroundColor: colors.sunken }]}>
             <Txt color="muted">No ready-made watches match "{query}". You can still add any page with New watch.</Txt>
           </View>
@@ -80,7 +99,7 @@ export default function Explore() {
 }
 
 /** One source. In a single column it's a compact row; in a grid the button sits under the text. */
-function SourceCard({ source: s, watching, onToggle, stacked }: { source: Source; watching: boolean; onToggle: () => void; stacked: boolean }) {
+function SourceCard({ source: s, watching, busy, onToggle, stacked }: { source: Source; watching: boolean; busy: boolean; onToggle: () => void; stacked: boolean }) {
   const { colors } = useTheme();
   return (
     <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.line }, stacked ? styles.cardStacked : styles.cardRow]}>
@@ -99,6 +118,7 @@ function SourceCard({ source: s, watching, onToggle, stacked }: { source: Source
         accessibilityState={{ selected: watching }}
         accessibilityLabel={watching ? `Stop watching ${s.name}` : `Watch ${s.name}`}
         onPress={onToggle}
+        disabled={busy}
         style={({ pressed }) => [
           styles.watchBtn,
           watching ? { backgroundColor: colors.tealBg, borderColor: colors.teal, borderWidth: 1 } : { backgroundColor: colors.accent },
@@ -107,7 +127,7 @@ function SourceCard({ source: s, watching, onToggle, stacked }: { source: Source
         ]}
       >
         {watching ? <Feather name="check" size={15} color={colors.tealText} /> : null}
-        <Txt variant="smallStrong" style={{ fontFamily: fonts.bold, color: watching ? colors.tealText : colors.onAccent }}>{watching ? 'Watching' : 'Watch'}</Txt>
+        <Txt variant="smallStrong" style={{ fontFamily: fonts.bold, color: watching ? colors.tealText : colors.onAccent }}>{busy ? '…' : watching ? 'Watching' : 'Watch'}</Txt>
       </Pressable>
     </View>
   );

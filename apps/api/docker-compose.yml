@@ -1,0 +1,17 @@
+# Local database for development. Start with: npm run db:up
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: lightkeeper-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: lightkeeper
+      POSTGRES_PASSWORD: lightkeeper
+      POSTGRES_DB: lightkeeper
+    ports:
+      - "5432:5432"
+    volumes:
+      - lightkeeper-pg:/var/lib/postgresql/data
+
+volumes:
+  lightkeeper-pg:

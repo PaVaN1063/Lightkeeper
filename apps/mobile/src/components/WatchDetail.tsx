@@ -15,8 +15,23 @@ const intervalLabel = { '1h': 'Hourly', '30m': '30 min', '10m': '10 min' } as co
 /** Full details for one watch. Used by the details screen (phone) and the split view (web). */
 export function WatchDetail({ watch, onDeleted }: { watch: Watch; onDeleted?: () => void }) {
   const { colors } = useTheme();
-  const { togglePause, deleteWatch, setFeedback } = useApp();
+  const { togglePause, deleteWatch, setFeedback, checkNow } = useApp();
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [busy, setBusy] = useState<null | 'check' | 'pause' | 'delete'>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const run = async (kind: 'check' | 'pause' | 'delete', fn: () => Promise<void>) => {
+    setBusy(kind);
+    setError(null);
+    try {
+      await fn();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(null);
+    }
+  };
+  const failing = watch.pages.filter((p) => p.failing);
 
   const multi = watch.pages.length > 1;
   const priced = watch.pages.filter((p) => typeof p.price === 'number');
@@ -63,6 +78,27 @@ export function WatchDetail({ watch, onDeleted }: { watch: Watch; onDeleted?: ()
           </View>
         ))}
       </View>
+
+      {failing.length ? (
+        <Card tone="sunken" style={{ flexDirection: 'row', gap: 10 }}>
+          <Feather name="alert-triangle" size={16} color={colors.danger} style={{ marginTop: 2 }} />
+          <Txt variant="small" color="textSoft" style={{ flex: 1 }}>
+            {failing.map((p) => `${p.site}: ${p.lastError ?? 'not reachable'}`).join('\n')}
+            {'\n'}I'll keep trying on every check.
+          </Txt>
+        </Card>
+      ) : null}
+
+      {watch.status === 'watching' ? (
+        <Button
+          kind="outline"
+          size="md"
+          icon="refresh-cw"
+          label={busy === 'check' ? 'Checking…' : `Check now · last checked ${watch.lastChecked}`}
+          disabled={busy !== null}
+          onPress={() => run('check', () => checkNow(watch.id))}
+        />
+      ) : null}
 
       {!multi ? (
         <Txt variant="small" color="textSoft">Goal: {watch.goal}</Txt>
@@ -116,6 +152,8 @@ export function WatchDetail({ watch, onDeleted }: { watch: Watch; onDeleted?: ()
                       ? { backgroundColor: colors.accent, width: 14, height: 14, borderRadius: 7 }
                       : e.kind === 'started'
                         ? { backgroundColor: colors.lineStrong }
+                        : e.kind === 'error'
+                        ? { borderWidth: 2, borderColor: colors.danger }
                         : { borderWidth: 2, borderColor: colors.lineStrong },
                   ]}
                 />
@@ -125,7 +163,7 @@ export function WatchDetail({ watch, onDeleted }: { watch: Watch; onDeleted?: ()
                 <View style={styles.row}>
                   <Txt variant="caption" color="muted">
                     {e.when}
-                    {e.kind === 'alert' ? ' · Alert sent' : e.kind === 'change' && !e.site ? ' · Changed' : ''}
+                    {e.kind === 'alert' ? ' · Alert' : e.kind === 'error' ? ' · Problem' : ''}
                   </Txt>
                   {e.site ? <Tag label={e.site} /> : null}
                 </View>
@@ -134,14 +172,14 @@ export function WatchDetail({ watch, onDeleted }: { watch: Watch; onDeleted?: ()
                     <Txt variant="bodyStrong" style={{ fontFamily: 'Figtree_700Bold' }}>{e.title}</Txt>
                     <Txt variant="small" color="textSoft" style={{ marginTop: 4 }}>{e.text}</Txt>
                     <View style={[styles.row, { marginTop: 12 }]}>
-                      <Button label="Open link" size="sm" style={{ flex: 1 }} onPress={() => Linking.openURL(watch.pages[0].url)} />
+                      <Button label="Open link" size="sm" style={{ flex: 1 }} onPress={() => Linking.openURL(e.link ?? watch.pages[0].url)} />
                       <FeedbackButton icon="thumbs-up" label="Useful" active={e.feedback === 'useful'} tone="good" onPress={() => setFeedback(watch.id, e.id, e.feedback === 'useful' ? null : 'useful')} />
                       <FeedbackButton icon="thumbs-down" label="Not useful" active={e.feedback === 'not_useful'} tone="bad" onPress={() => setFeedback(watch.id, e.id, e.feedback === 'not_useful' ? null : 'not_useful')} />
                     </View>
                     {e.feedback ? <Txt variant="caption" style={{ marginTop: 10, color: colors.tealText }}>Thanks, this helps tune your alerts.</Txt> : null}
                   </Card>
                 ) : (
-                  <Txt variant="small" color={e.kind === 'started' ? 'muted' : 'textSoft'} style={{ marginTop: 4 }}>{e.text}</Txt>
+                  <Txt variant="small" color={e.kind === 'started' ? 'muted' : 'textSoft'} style={[{ marginTop: 4 }, e.kind === 'error' && { color: colors.danger }]}>{e.text}</Txt>
                 )}
               </View>
             </View>
@@ -153,24 +191,29 @@ export function WatchDetail({ watch, onDeleted }: { watch: Watch; onDeleted?: ()
         <Button
           kind="secondary"
           size="md"
-          icon={watch.status === 'paused' ? 'play' : 'pause'}
-          label={watch.status === 'paused' ? 'Resume' : 'Pause'}
+          icon={watch.status === 'watching' ? 'pause' : 'play'}
+          label={busy === 'pause' ? 'Saving…' : watch.status === 'watching' ? 'Pause' : watch.status === 'goal_met' ? 'Watch again' : 'Resume'}
           style={{ flex: 1 }}
-          onPress={() => togglePause(watch.id)}
+          disabled={busy !== null}
+          onPress={() => run('pause', () => togglePause(watch.id))}
         />
         <Button
           kind="danger"
           size="md"
           icon="trash-2"
-          label={confirmDelete ? 'Tap to confirm' : 'Delete'}
+          label={busy === 'delete' ? 'Deleting…' : confirmDelete ? 'Tap to confirm' : 'Delete'}
           style={{ flex: 1 }}
+          disabled={busy !== null}
           onPress={() => {
             if (!confirmDelete) return setConfirmDelete(true);
-            deleteWatch(watch.id);
-            onDeleted?.();
+            run('delete', async () => {
+              await deleteWatch(watch.id);
+              onDeleted?.();
+            });
           }}
         />
       </View>
+      {error ? <Txt variant="small" align="center" style={{ color: colors.danger }}>{error}</Txt> : null}
       <Txt variant="caption" color="muted" align="center">Always confirm on the official website.</Txt>
     </View>
   );

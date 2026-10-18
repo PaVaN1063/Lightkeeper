@@ -103,8 +103,8 @@ export default function Settings() {
           <LinkRow label="Help and feedback" />
           <LinkRow
             label="Sign out"
-            onPress={() => {
-              signOut();
+            onPress={async () => {
+              await signOut();
               router.replace('/welcome');
             }}
           />

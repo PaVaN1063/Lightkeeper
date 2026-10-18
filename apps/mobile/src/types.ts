@@ -9,29 +9,33 @@ export type SitePage = {
   url: string;
   price?: number; // current price, for price watches
   lastChecked: string; // human label, e.g. "8 min ago"
+  failing?: boolean;
+  lastError?: string | null;
 };
 
 export type TimelineEvent = {
   id: string;
   when: string;
-  kind: 'alert' | 'change' | 'started';
+  kind: 'alert' | 'change' | 'started' | 'error';
   title?: string;
   text: string;
   site?: string; // which page this came from (multi-site watches)
+  link?: string | null;
   feedback?: Feedback;
 };
 
 export type Watch = {
   id: string;
   name: string;
-  goal: string; // the user's goal, rewritten by AI
+  goal: string; // the user's goal, as the checker understood it
   status: WatchStatus;
   interval: CheckInterval;
   lastChecked: string;
   statusNote: string; // e.g. "12 min ago", "Since Oct 14"
   pages: SitePage[];
   targetPrice?: number;
-  aiSummary?: string; // latest one-line AI summary when goal met
+  aiSummary?: string; // latest alert text when goal met
+  sourceId?: string | null;
   timeline: TimelineEvent[];
 };
 

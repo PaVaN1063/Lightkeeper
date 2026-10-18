@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../src/components/Button';
 import { Logo } from '../../src/components/Logo';
@@ -9,6 +9,7 @@ import { Card, Chip, IconTile } from '../../src/components/primitives';
 import { Txt } from '../../src/components/Txt';
 import { WatchCard } from '../../src/components/WatchCard';
 import { WatchDetail } from '../../src/components/WatchDetail';
+import { API_URL } from '../../src/api/client';
 import { MOCK_USER } from '../../src/data/mock';
 import { isWeb, useGrid, useLayout } from '../../src/hooks/useLayout';
 import { useApp } from '../../src/store/AppStore';
@@ -32,7 +33,13 @@ function greeting() {
 export default function Watches() {
   const { colors } = useTheme();
   const { isWide, isSplit } = useLayout();
-  const { watches, session, activeCount, limits } = useApp();
+  const { watches, session, activeCount, limits, loading, error, refresh } = useApp();
+  const [pulling, setPulling] = useState(false);
+  const onPull = async () => {
+    setPulling(true);
+    await refresh();
+    setPulling(false);
+  };
   const [filter, setFilter] = useState<Filter>('all');
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -60,9 +67,9 @@ export default function Watches() {
   const header = (
     <View style={styles.headerRow}>
       <View style={{ flex: 1, minWidth: 240 }}>
-        <Txt variant="title">{guest ? 'Your watch is on' : `${greeting()}, ${MOCK_USER.firstName}`}</Txt>
+        <Txt variant="title">{guest ? (watches.length ? 'Your watch is on' : 'Start your first watch') : `${greeting()}, ${MOCK_USER.firstName}`}</Txt>
         <Txt color="muted" style={{ marginTop: 4 }}>
-          {guest ? "We'll alert you on this device." : `${watches.length} watches`}
+          {guest ? "We'll alert you on this device." : `${watches.length} ${watches.length === 1 ? 'watch' : 'watches'}`}
           {!guest && newAlerts > 0 ? <Txt variant="bodyStrong" color="accentText">{` · ${newAlerts} new alert`}</Txt> : null}
         </Txt>
       </View>
@@ -112,9 +119,32 @@ export default function Watches() {
     </>
   );
 
+  const status = error ? (
+    <Card tone="sunken" style={{ gap: 10 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <Feather name={error.code === 'OFFLINE' ? 'wifi-off' : 'alert-triangle'} size={18} color={colors.danger} />
+        <Txt variant="bodyStrong" style={{ flex: 1 }}>{error.code === 'OFFLINE' ? "Can't reach the Lightkeeper server" : 'Something went wrong'}</Txt>
+      </View>
+      <Txt variant="small" color="textSoft">
+        {error.code === 'OFFLINE' ? `Start the backend (npm run dev in apps/api) and make sure this device can open ${API_URL}.` : error.message}
+      </Txt>
+      <Button label={loading ? 'Trying…' : 'Try again'} size="sm" kind="secondary" onPress={refresh} />
+    </Card>
+  ) : !loading && watches.length === 0 ? (
+    <Card style={{ alignItems: 'center', paddingVertical: 28, gap: 10 }}>
+      <Txt variant="h3">No watches yet</Txt>
+      <Txt variant="small" color="muted" align="center">Paste any link and say what you're waiting for, or pick a ready-made watch.</Txt>
+      <View style={{ flexDirection: 'row', gap: 10, marginTop: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
+        <Button label="New watch" icon="plus" size="sm" onPress={addWatch} />
+        <Button label="Explore" icon="compass" size="sm" kind="secondary" onPress={() => router.push('/explore')} />
+      </View>
+    </Card>
+  ) : null;
+
   const listColumn = (
     <View style={{ gap: 12 }}>
-      {!guest ? (
+      {status}
+      {!guest && watches.length > 0 ? (
         <View style={styles.chips}>
           {FILTERS.map((f) => (
             <Chip key={f.value} label={f.label} selected={filter === f.value} onPress={() => setFilter(f.value)} />
@@ -132,12 +162,12 @@ export default function Watches() {
       ) : (
         list.map((w) => <WatchCard key={w.id} watch={w} selected={isSplit && selected?.id === w.id} onPress={() => open(w.id)} />)
       )}
-      {list.length === 0 ? (
+      {watches.length > 0 && list.length === 0 ? (
         <Card tone="sunken" style={{ alignItems: 'center', paddingVertical: 28 }}>
-          <Txt color="muted">Nothing here yet.</Txt>
+          <Txt color="muted">No watches match this filter.</Txt>
         </Card>
       ) : null}
-      {guest ? (
+      {guest && activeCount >= limits.watches ? (
         <View style={[styles.lockHint, { borderColor: colors.lineStrong }]}>
           <Feather name="lock" size={18} color={colors.muted} />
           <Txt variant="small" color="muted" style={{ flex: 1 }}>Guests can keep 1 watch. Save your account for 3 free watches.</Txt>
@@ -149,12 +179,16 @@ export default function Watches() {
   // Wide screens: header + list (+ detail panel on very wide screens). Phones: classic list with a floating + button.
   if (isWide) {
     return (
-      <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={styles.wideContent}>
+      <ScrollView
+        style={{ flex: 1, backgroundColor: colors.bg }}
+        contentContainerStyle={styles.wideContent}
+        refreshControl={<RefreshControl refreshing={pulling} onRefresh={onPull} tintColor={colors.accent} />}
+      >
         {header}
         {banners}
         <View style={styles.split}>
           <View style={isSplit ? { width: 420 } : { flex: 1 }}>{listColumn}</View>
-          {isSplit && selected ? (
+          {isSplit && selected && !error ? (
             <Card style={{ flex: 1, minWidth: 0, padding: 24, borderRadius: 24 }}>
               <WatchDetail key={selected.id} watch={selected} onDeleted={() => setSelectedId(null)} />
             </Card>
@@ -166,7 +200,7 @@ export default function Watches() {
 
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScrollView contentContainerStyle={styles.phoneContent}>
+      <ScrollView contentContainerStyle={styles.phoneContent} refreshControl={<RefreshControl refreshing={pulling} onRefresh={onPull} tintColor={colors.accent} colors={[colors.accent]} />}>
         <View style={styles.topBar}>
           <Logo size={17} />
           <Pressable

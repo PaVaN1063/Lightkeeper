@@ -1,0 +1,128 @@
+// Lightkeeper database. Apply changes with: npm run db:push
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum WatchStatus {
+  ACTIVE
+  PAUSED
+  TRIGGERED
+}
+
+enum ConditionType {
+  KEYWORD
+  PRICE
+  ANY_CHANGE
+}
+
+enum EventKind {
+  STARTED
+  CHANGE
+  ALERT
+  ERROR
+}
+
+enum Feedback {
+  USEFUL
+  NOT_USEFUL
+}
+
+enum PageStatus {
+  OK
+  FAILING
+}
+
+/// Temporary identity: a random id each app install creates. Replaced by Firebase uid later.
+model User {
+  id        String   @id @default(cuid())
+  clientId  String   @unique
+  createdAt DateTime @default(now())
+  watches   Watch[]
+}
+
+/// One row per unique URL. Fetched once, however many watches use it.
+model Page {
+  id            String      @id @default(cuid())
+  url           String      @unique
+  site          String
+  title         String?
+  lastCheckedAt DateTime?
+  lastHash      String?
+  lastText      String?
+  lastPrice     Int?
+  status        PageStatus  @default(OK)
+  failCount     Int         @default(0)
+  lastError     String?
+  createdAt     DateTime    @default(now())
+  watches       WatchPage[]
+  events        WatchEvent[]
+}
+
+/// What one user is waiting for, across one or more pages.
+model Watch {
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  goalText      String
+  summary       String
+  conditionType ConditionType
+  keywords      String[]
+  priceTarget   Int?
+  intervalMin   Int           @default(60)
+  status        WatchStatus   @default(ACTIVE)
+  sourceId      String?
+  createdAt     DateTime      @default(now())
+  triggeredAt   DateTime?
+  /// Set after the first check of this watch. Before that, words already on the page count as a hit.
+  baselineAt    DateTime?
+  pages         WatchPage[]
+  events        WatchEvent[]
+
+  @@index([userId])
+}
+
+model WatchPage {
+  watchId String
+  pageId  String
+  watch   Watch  @relation(fields: [watchId], references: [id], onDelete: Cascade)
+  page    Page   @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@id([watchId, pageId])
+  @@index([pageId])
+}
+
+/// The timeline of a watch: started, changes seen, alerts, problems.
+model WatchEvent {
+  id        String     @id @default(cuid())
+  watchId   String
+  watch     Watch      @relation(fields: [watchId], references: [id], onDelete: Cascade)
+  pageId    String?
+  page      Page?      @relation(fields: [pageId], references: [id], onDelete: SetNull)
+  kind      EventKind
+  title     String?
+  text      String
+  link      String?
+  feedback  Feedback?
+  createdAt DateTime   @default(now())
+
+  @@index([watchId, createdAt])
+}
+
+/// Ready-made watches shown in Explore.
+model Source {
+  id          String @id
+  badge       String
+  name        String
+  goal        String
+  url         String
+  category    String
+  defaultGoal String
+  sortOrder   Int    @default(0)
+}
