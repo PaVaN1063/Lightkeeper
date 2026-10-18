@@ -36,7 +36,8 @@ export function LighthouseHero({ size = 300 }: { size?: number }) {
   const wave1 = scheme === 'dark' ? '#3A4B70' : '#AEBBD4';
   const wave2 = scheme === 'dark' ? '#2A3756' : '#C9D3E6';
   return (
-    <Svg width={size} height={size * 0.94} viewBox="0 0 320 300" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+    <View aria-hidden>
+    <Svg width={size} height={size * 0.94} viewBox="0 0 320 300">
       <Circle cx={160} cy={150} r={138} fill={disk} />
       <Path d="M160 92 L20 40 L20 150 Z" fill={colors.beam} opacity={0.16} />
       <Path d="M160 92 L300 46 L300 140 Z" fill={colors.beam} opacity={0.26} />
@@ -53,5 +54,6 @@ export function LighthouseHero({ size = 300 }: { size?: number }) {
       <Path d="M40 256 Q70 246 100 256 T160 256 T220 256 T280 256" stroke={wave1} strokeWidth={3} fill="none" strokeLinecap="round" />
       <Path d="M64 272 Q94 262 124 272 T184 272 T244 272" stroke={wave2} strokeWidth={3} fill="none" strokeLinecap="round" />
     </Svg>
+    </View>
   );
 }

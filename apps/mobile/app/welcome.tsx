@@ -7,6 +7,7 @@ import { GoogleDot } from '../src/components/GoogleDot';
 import { LighthouseHero, Logo } from '../src/components/Logo';
 import { Card, StatusPill } from '../src/components/primitives';
 import { Screen } from '../src/components/Screen';
+import { ThemeToggle } from '../src/components/ThemeToggle';
 import { Txt } from '../src/components/Txt';
 import { useLayout } from '../src/hooks/useLayout';
 import { useApp } from '../src/store/AppStore';
@@ -80,7 +81,8 @@ function WideLanding() {
         <View style={styles.wideInner}>
           <View style={styles.nav}>
             <Logo size={20} />
-            <View style={{ flexDirection: 'row', gap: 10 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <ThemeToggle />
               <Button kind="ghost" size="md" label="Ready-made watches" onPress={() => go(continueAsGuest)} />
               <Button kind="secondary" size="md" label="Sign in" onPress={() => router.push('/sign-in')} />
             </View>
