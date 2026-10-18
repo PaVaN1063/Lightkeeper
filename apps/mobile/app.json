@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "Lightkeeper",
+    "slug": "lightkeeper",
+    "scheme": "lightkeeper",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#0B1220",
+    "ios": {
+      "bundleIdentifier": "com.pavan.lightkeeper",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.pavan.lightkeeper"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "name": "Lightkeeper",
+      "shortName": "Lightkeeper",
+      "description": "Keeping watch, so you don't have to.",
+      "themeColor": "#0B1220",
+      "backgroundColor": "#0B1220"
+    },
+    "plugins": ["expo-router", "expo-font"],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}

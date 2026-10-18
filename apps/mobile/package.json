@@ -1,0 +1,20 @@
+{
+  "name": "lightkeeper-mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "build:web": "expo export --platform web",
+    "typecheck": "tsc --noEmit",
+    "doctor": "npx expo-doctor",
+    "setup": "expo install react react-native react-dom react-native-web @expo/metro-runtime expo-router expo-linking expo-constants expo-status-bar expo-system-ui expo-font react-native-safe-area-context react-native-screens react-native-svg @react-native-async-storage/async-storage @expo/vector-icons @expo-google-fonts/bricolage-grotesque @expo-google-fonts/figtree && expo install --dev typescript @types/react"
+  },
+  "dependencies": {
+    "expo": "~58.0.0"
+  },
+  "devDependencies": {}
+}
