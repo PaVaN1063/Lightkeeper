@@ -9,6 +9,7 @@ import { useApp } from '../store/AppStore';
 import { useTheme } from '../theme/ThemeProvider';
 import { Button } from './Button';
 import { LogoMark, Logo } from './Logo';
+import { ThemeToggle } from './ThemeToggle';
 import { Txt } from './Txt';
 
 type IconName = React.ComponentProps<typeof Feather>['name'];
@@ -100,6 +101,9 @@ function Sidebar(props: TabBarProps) {
       })}
 
       <View style={{ flex: 1 }} />
+      <View style={{ marginBottom: 12 }}>
+        <ThemeToggle showLabel />
+      </View>
       {session === 'guest' ? (
         <View style={[styles.account, { backgroundColor: colors.accentSoftBg, borderColor: colors.accentSoftBorder }]}>
           <Txt variant="smallStrong">Browsing as a guest</Txt>
