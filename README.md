@@ -60,15 +60,6 @@ The app is built once with **Expo** and runs as:
 
 Settings → Appearance offers **System**, **Light** and **Dark**. The choice is saved on the device, and the web app has the same switch in its sidebar.
 
-## Screens
-
-| | | | | |
-| :---: | :---: | :---: | :---: | :---: |
-| <img src="docs/images/screens/main-dark.jpg" width="160"><br><sub>Welcome</sub> | <img src="docs/images/screens/home-dark.jpg" width="160"><br><sub>Watches</sub> | <img src="docs/images/screens/addwatch-dark.jpg" width="160"><br><sub>New watch</sub> | <img src="docs/images/screens/confirm-dark.jpg" width="160"><br><sub>Confirm</sub> | <img src="docs/images/screens/pushalert-dark.jpg" width="160"><br><sub>Alert</sub> |
-| <img src="docs/images/screens/detailsmulti-dark.jpg" width="160"><br><sub>Two-site watch</sub> | <img src="docs/images/screens/homeguest-dark.jpg" width="160"><br><sub>Guest mode</sub> | <img src="docs/images/screens/explore-light.jpg" width="160"><br><sub>Explore</sub> | <img src="docs/images/screens/settings-light.jpg" width="160"><br><sub>Settings</sub> | <img src="docs/images/screens/installios-light.jpg" width="160"><br><sub>Install on iPhone</sub> |
-
-<sub>Images show sample data.</sub>
-
 ## Tech stack
 
 | Layer | Choice |
@@ -138,21 +129,6 @@ The control page can also drop the price (try *below ₹50,000*) or add a notice
 
 A page watched by many people is fetched once. Private network addresses are blocked unless `ALLOW_PRIVATE_URLS=true` (development).
 
-## API
-
-| Method | Path | What it does |
-| --- | --- | --- |
-| GET | `/health` | Server and database status |
-| POST | `/watches/parse` | Preview how a goal is understood (saves nothing) |
-| GET | `/watches` | Your watches with pages and timeline |
-| POST | `/watches` | Create from `{ urls, goal, intervalMin }` or `{ sourceId }` |
-| GET | `/watches/:id` | One watch |
-| PATCH | `/watches/:id` | `{ status: "paused" \| "watching" }` |
-| DELETE | `/watches/:id` | Delete |
-| POST | `/watches/:id/check` | Check now |
-| POST | `/events/:id/feedback` | `{ value: "useful" \| "not_useful" \| null }` |
-| GET | `/sources` | Ready-made watches |
-
 ## Plans
 
 | | Guest | Free | Pro (coming soon) |
@@ -162,20 +138,6 @@ A page watched by many people is fetched once. Private network addresses are blo
 | Check frequency | Hourly | Hourly | Every 5–10 minutes |
 
 Paused watches don't count toward the limit.
-
-## Roadmap
-
-- [x] App UI for Android and web, light and dark themes, guest mode
-- [x] Backend with real page checking, timeline and alerts in the app
-- [ ] Firebase sign-in (Google, email link, guest → saved account)
-- [ ] Push notifications (Android FCM, Web Push)
-- [ ] Gemini for goal parsing and one-line change summaries
-- [ ] Deploy: web on Netlify, API on Render + Neon
-- [ ] Telugu and Hindi, price tracking via affiliate APIs, Pro plan
-
-## Status and limits
-
-This is an early build. Sign-in is a temporary per-device id, so the API must not be exposed publicly yet. Amazon and Flipkart usually block automated checks; price watches work best on simple product pages until official APIs are added. Always confirm on the official website before acting on an alert.
 
 ---
 
