@@ -21,16 +21,24 @@ const TABS: Record<string, { label: string; icon: IconName | 'logo' }> = {
 
 type TabBarProps = {
   state: { index: number; routes: { key: string; name: string }[] };
-  navigation: { navigate: (name: string) => void };
+  /** Newer bottom-tabs passes navigateToTab(routeKey); older versions pass navigation. */
+  navigateToTab?: (routeKey: string) => void;
+  navigation?: { navigate: (name: string) => void };
 };
 
-/** Bottom tab bar on phones, sidebar on wide screens (web, tablets). */
-export function TabBar({ state, navigation }: TabBarProps) {
-  const { isWide } = useLayout();
-  return isWide ? <Sidebar state={state} navigation={navigation} /> : <BottomBar state={state} navigation={navigation} />;
+function goToTab(props: TabBarProps, route: { key: string; name: string }) {
+  if (props.navigateToTab) props.navigateToTab(route.key);
+  else props.navigation?.navigate(route.name);
 }
 
-function BottomBar({ state, navigation }: TabBarProps) {
+/** Bottom tab bar on phones, sidebar on wide screens (web, tablets). */
+export function TabBar(props: TabBarProps) {
+  const { isWide } = useLayout();
+  return isWide ? <Sidebar {...props} /> : <BottomBar {...props} />;
+}
+
+function BottomBar(props: TabBarProps) {
+  const { state } = props;
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   return (
@@ -45,7 +53,7 @@ function BottomBar({ state, navigation }: TabBarProps) {
             key={route.key}
             accessibilityRole="tab"
             accessibilityState={{ selected: on }}
-            onPress={() => navigation.navigate(route.name)}
+            onPress={() => goToTab(props, route)}
             style={styles.bottomItem}
           >
             {tab.icon === 'logo' ? <LogoMark size={22} color={color} /> : <Feather name={tab.icon} size={21} color={color} />}
@@ -57,7 +65,8 @@ function BottomBar({ state, navigation }: TabBarProps) {
   );
 }
 
-function Sidebar({ state, navigation }: TabBarProps) {
+function Sidebar(props: TabBarProps) {
+  const { state } = props;
   const { colors } = useTheme();
   const { session, activeCount, limits, watches } = useApp();
   const newAlerts = watches.filter((w) => w.status === 'goal_met').length;
@@ -76,7 +85,7 @@ function Sidebar({ state, navigation }: TabBarProps) {
             key={route.key}
             accessibilityRole="tab"
             accessibilityState={{ selected: on }}
-            onPress={() => navigation.navigate(route.name)}
+            onPress={() => goToTab(props, route)}
             style={[styles.sideItem, on && { backgroundColor: colors.surface2 }]}
           >
             {tab.icon === 'logo' ? <LogoMark size={18} color={on ? colors.accentText : colors.muted} /> : <Feather name={tab.icon} size={18} color={on ? colors.accentText : colors.muted} />}
