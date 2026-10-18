@@ -6,6 +6,7 @@ import { IconButton } from '../../src/components/primitives';
 import { Screen } from '../../src/components/Screen';
 import { Txt } from '../../src/components/Txt';
 import { WatchDetail } from '../../src/components/WatchDetail';
+import { isWeb } from '../../src/hooks/useLayout';
 import { useApp } from '../../src/store/AppStore';
 
 export default function WatchDetailsScreen() {
@@ -18,7 +19,7 @@ export default function WatchDetailsScreen() {
     <Screen maxWidth={720}>
       <View style={styles.header}>
         <IconButton icon="chevron-left" label="Back" onPress={back} />
-        <IconButton icon="share-2" label="Share this watch" />
+        <IconButton icon={isWeb ? 'link' : 'share-2'} label={isWeb ? 'Copy link to this watch' : 'Share this watch'} />
       </View>
       <View style={{ marginTop: 18 }}>
         {watch ? (

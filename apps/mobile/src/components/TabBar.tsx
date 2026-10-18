@@ -70,9 +70,10 @@ function Sidebar(props: TabBarProps) {
   const { state } = props;
   const { colors } = useTheme();
   const { session, activeCount, limits, watches } = useApp();
+  const { sidebarWidth } = useLayout();
   const newAlerts = watches.filter((w) => w.status === 'goal_met').length;
   return (
-    <View style={[styles.side, { backgroundColor: colors.nav, borderRightColor: colors.line }]}>
+    <View style={[styles.side, { width: sidebarWidth, backgroundColor: colors.nav, borderRightColor: colors.line }]}>
       <View style={{ paddingHorizontal: 10, paddingBottom: 18 }}>
         <Logo />
       </View>
@@ -136,7 +137,7 @@ function Sidebar(props: TabBarProps) {
 const styles = StyleSheet.create({
   bottom: { flexDirection: 'row', borderTopWidth: 1, paddingTop: 10 },
   bottomItem: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4, minHeight: 48 },
-  side: { width: 256, height: '100%', borderRightWidth: 1, paddingHorizontal: 16, paddingVertical: 22, gap: 4 },
+  side: { height: '100%', borderRightWidth: 1, paddingHorizontal: 16, paddingVertical: 22, gap: 4 },
   sideItem: { flexDirection: 'row', alignItems: 'center', gap: 12, height: 44, paddingHorizontal: 12, borderRadius: 12 },
   badge: { minWidth: 22, height: 22, paddingHorizontal: 6, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
   account: { padding: 14, borderRadius: 16, borderWidth: 1 },

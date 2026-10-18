@@ -7,7 +7,7 @@ import { Card, IconButton, ProBadge, Segmented, SiteAvatar } from '../../src/com
 import { Screen } from '../../src/components/Screen';
 import { Txt } from '../../src/components/Txt';
 import { previewSentence, siteFromUrl } from '../../src/data/mock';
-import { useLayout } from '../../src/hooks/useLayout';
+import { isWeb, useLayout } from '../../src/hooks/useLayout';
 import { useApp } from '../../src/store/AppStore';
 import { useTheme } from '../../src/theme/ThemeProvider';
 import { fonts } from '../../src/theme/tokens';
@@ -93,11 +93,13 @@ export default function NewWatch() {
           placeholderTextColor={colors.muted}
           multiline
           accessibilityLabel="What are you waiting for?"
-          style={[styles.goal, { color: colors.text, backgroundColor: colors.surface, borderColor: draft.goal ? colors.accent : colors.line }]}
+          style={[styles.goal, isWeb && { paddingRight: 14 }, { color: colors.text, backgroundColor: colors.surface, borderColor: draft.goal ? colors.accent : colors.line }]}
         />
-        <Pressable accessibilityRole="button" accessibilityLabel="Speak your goal" style={[styles.mic, { backgroundColor: colors.surface2 }]}>
-          <Feather name="mic" size={19} color={colors.accentText} />
-        </Pressable>
+        {!isWeb ? (
+          <Pressable accessibilityRole="button" accessibilityLabel="Speak your goal" style={[styles.mic, { backgroundColor: colors.surface2 }]}>
+            <Feather name="mic" size={19} color={colors.accentText} />
+          </Pressable>
+        ) : null}
       </View>
       <View style={styles.suggestions}>
         {SUGGESTIONS.map((s) => (

@@ -7,7 +7,7 @@ import { Button } from '../../src/components/Button';
 import { Card, SectionLabel, Segmented } from '../../src/components/primitives';
 import { Txt } from '../../src/components/Txt';
 import { MOCK_USER } from '../../src/data/mock';
-import { useLayout } from '../../src/hooks/useLayout';
+import { isWeb, useLayout } from '../../src/hooks/useLayout';
 import { useApp } from '../../src/store/AppStore';
 import { ThemeMode, useTheme } from '../../src/theme/ThemeProvider';
 
@@ -19,7 +19,7 @@ export default function Settings() {
   const [alerts, setAlerts] = useState({ push: true, quiet: true, broken: true });
 
   const toggles: { key: keyof typeof alerts; label: string; sub: string }[] = [
-    { key: 'push', label: 'Push alerts', sub: 'When a watch meets its goal' },
+    { key: 'push', label: isWeb ? 'Browser alerts' : 'Push alerts', sub: isWeb ? 'Notifications in this browser when a watch meets its goal' : 'When a watch meets its goal' },
     { key: 'quiet', label: 'Quiet hours', sub: '11 PM to 7 AM' },
     { key: 'broken', label: 'Tell me if a page breaks', sub: 'When a site fails several checks in a row' },
   ];
@@ -98,7 +98,7 @@ export default function Settings() {
 
         <SectionLabel>Account</SectionLabel>
         <Card style={{ paddingVertical: 0 }}>
-          <LinkRow label="Install the app" onPress={() => router.push('/install')} />
+          {isWeb ? <LinkRow label="Install Lightkeeper on this device" onPress={() => router.push('/install')} /> : null}
           <LinkRow label="Privacy policy" />
           <LinkRow label="Help and feedback" />
           <LinkRow

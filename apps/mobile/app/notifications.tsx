@@ -23,7 +23,7 @@ export default function Notifications() {
     <Screen
       footer={
         <>
-          <Button label="Allow notifications" onPress={finish} />
+          <Button label={Platform.OS === 'web' ? 'Allow browser notifications' : 'Allow notifications'} onPress={finish} />
           <Button kind="ghost" label="Not now" onPress={finish} />
         </>
       }

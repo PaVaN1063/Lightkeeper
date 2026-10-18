@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../src/components/Button';
 import { Logo } from '../../src/components/Logo';
@@ -10,7 +10,7 @@ import { Txt } from '../../src/components/Txt';
 import { WatchCard } from '../../src/components/WatchCard';
 import { WatchDetail } from '../../src/components/WatchDetail';
 import { MOCK_USER } from '../../src/data/mock';
-import { useLayout } from '../../src/hooks/useLayout';
+import { isWeb, useGrid, useLayout } from '../../src/hooks/useLayout';
 import { useApp } from '../../src/store/AppStore';
 import { useTheme } from '../../src/theme/ThemeProvider';
 import { fonts } from '../../src/theme/tokens';
@@ -36,6 +36,9 @@ export default function Watches() {
   const [filter, setFilter] = useState<Filter>('all');
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Laptop widths without the split view: cards in a responsive grid.
+  const grid = useGrid(300, 12);
+  const showCardGrid = isWide && !isSplit;
 
   const guest = session === 'guest';
   const newAlerts = watches.filter((w) => w.status === 'goal_met').length;
@@ -95,7 +98,7 @@ export default function Watches() {
           <Button label="Save my account" size="sm" style={{ marginTop: 14 }} onPress={() => router.push('/save-account')} />
         </Card>
       ) : null}
-      {Platform.OS === 'web' ? (
+      {isWeb ? (
         <View style={[styles.webStrip, { backgroundColor: colors.sunken, borderColor: colors.line }]}>
           <Feather name="bell" size={18} color={colors.teal} />
           <Txt variant="small" color="textSoft" style={{ flex: 1, minWidth: 200 }}>
@@ -118,9 +121,17 @@ export default function Watches() {
           ))}
         </View>
       ) : null}
-      {list.map((w) => (
-        <WatchCard key={w.id} watch={w} selected={isSplit && selected?.id === w.id} onPress={() => open(w.id)} />
-      ))}
+      {showCardGrid ? (
+        <View onLayout={grid.onLayout} style={grid.containerStyle}>
+          {list.map((w) => (
+            <View key={w.id} style={grid.itemStyle}>
+              <WatchCard watch={w} onPress={() => open(w.id)} />
+            </View>
+          ))}
+        </View>
+      ) : (
+        list.map((w) => <WatchCard key={w.id} watch={w} selected={isSplit && selected?.id === w.id} onPress={() => open(w.id)} />)
+      )}
       {list.length === 0 ? (
         <Card tone="sunken" style={{ alignItems: 'center', paddingVertical: 28 }}>
           <Txt color="muted">Nothing here yet.</Txt>
@@ -142,9 +153,9 @@ export default function Watches() {
         {header}
         {banners}
         <View style={styles.split}>
-          <View style={{ flex: 1, minWidth: 340, maxWidth: isSplit ? 480 : 640 }}>{listColumn}</View>
+          <View style={isSplit ? { width: 420 } : { flex: 1 }}>{listColumn}</View>
           {isSplit && selected ? (
-            <Card style={{ flex: 1.4, minWidth: 420, padding: 24, borderRadius: 24 }}>
+            <Card style={{ flex: 1, minWidth: 0, padding: 24, borderRadius: 24 }}>
               <WatchDetail key={selected.id} watch={selected} onDeleted={() => setSelectedId(null)} />
             </Card>
           ) : null}
@@ -181,7 +192,7 @@ export default function Watches() {
 
 const styles = StyleSheet.create({
   phoneContent: { padding: 20, paddingBottom: 110, gap: 16, width: '100%', maxWidth: 640, alignSelf: 'center' },
-  wideContent: { padding: 32, gap: 18 },
+  wideContent: { padding: 32, gap: 18, width: '100%', maxWidth: 1400, alignSelf: 'center' },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   avatar: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   headerRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 16 },
@@ -189,7 +200,7 @@ const styles = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   webStrip: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 12, padding: 14, borderRadius: 16, borderWidth: 1 },
   lockHint: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 20, borderWidth: 1.5, borderStyle: 'dashed' },
-  split: { flexDirection: 'row', flexWrap: 'wrap', gap: 20, alignItems: 'flex-start' },
+  split: { flexDirection: 'row', gap: 20, alignItems: 'flex-start' },
   fab: {
     position: 'absolute',
     right: 20,
