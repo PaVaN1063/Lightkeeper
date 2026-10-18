@@ -17,7 +17,7 @@ lightkeeper/
 
 ## Run the app (UI with mock data)
 
-You need Node.js LTS and Git. Then:
+You need **Node.js 22.13 or newer** (Node 24 LTS recommended) and Git. Check with `node -v`. Then:
 
 ```bash
 cd apps/mobile

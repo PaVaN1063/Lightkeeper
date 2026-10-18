@@ -16,5 +16,8 @@
   "dependencies": {
     "expo": "~58.0.0"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "engines": {
+    "node": ">=22.13.0"
+  }
 }
